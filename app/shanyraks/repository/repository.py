@@ -29,3 +29,7 @@ class ShanyrakRepository:
         return self.database["shanyraks"].delete_one(
             {"_id": ObjectId(shanyrak_id), "user_id": ObjectId(user_id)}
         )
+    
+    def update_pic(self, shanyrak_id: str, user_id: str, data: str) -> UpdateResult:
+        filter={"_id":ObjectId(shanyrak_id), "user_id":ObjectId(user_id)}
+        return self.database["shanyraks"].update_one(filter, update={"$push":{"pic":data}})

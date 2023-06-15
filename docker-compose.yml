@@ -7,6 +7,7 @@ services:
       dockerfile: ./deploy/dockerfiles/Dockerfile
     environment:
      - MONGOHOST=mongodb
+    env_file: .env
     volumes:
       - ./:/code
     ports:
