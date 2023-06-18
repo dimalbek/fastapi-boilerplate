@@ -30,7 +30,7 @@ docker-compose build
 2. Start the project
 
 ```bash
-docker-compose udocker-compose up -ddocker-compose up -dp -d
+docker-compose udocker-compose up -docker-compose up -dp -d
 ```docker-compose up -d
 
 3. Watch logs

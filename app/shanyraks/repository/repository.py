@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Optional, List
 
 from bson.objectid import ObjectId
 from pymongo.database import Database
@@ -9,15 +9,22 @@ class ShanyrakRepository:
     def __init__(self, database: Database):
         self.database = database
 
-    def create_shanyrak(self, user_id: str, data: dict[str, Any]):
-        data["user_id"] = ObjectId(user_id)
-        insert_result = self.database["shanyraks"].insert_one(data)
-        return insert_result.inserted_id
+    def create_shanyrak(self, user_id: str, payload: dict):
+        payload["user_id"] = ObjectId(user_id)
+        shanyrak = self.database["shanyraks"].insert_one(payload)
+        return shanyrak.inserted_id
 
-    def get_shanyrak(self, shanyrak_id: str):
-        return self.database["shanyraks"].find_one({"_id": ObjectId(shanyrak_id)})
+    def get_shanyrak_by_id(self, shanyrak_id: str, user_id: str) -> Optional[dict]:
+        user = self.database["shanyraks"].find_one(
+            {"_id": ObjectId(shanyrak_id), "user_id": ObjectId(user_id)}
+        )
+        return user
 
-    def update_shanyrak(self, shanyrak_id: str, user_id: str, data: dict[str, Any]) -> UpdateResult:
+    def get_all_shanyraks(self, user_id: str) -> List[dict]:
+        shanyraks = self.database["shanyraks"].find({"user_id": ObjectId(user_id)})
+        return list(shanyraks)
+    
+    def update_shanyrak_by_id(self, shanyrak_id: str, user_id: str, data: dict) -> UpdateResult:
         return self.database["shanyraks"].update_one(
             filter={"_id": ObjectId(shanyrak_id), "user_id": ObjectId(user_id)},
             update={
@@ -25,11 +32,21 @@ class ShanyrakRepository:
             },
         )
 
-    def delete_shanyrak(self, shanyrak_id: str, user_id: str) -> DeleteResult:
+    def delete_shanyrak_by_id(self, shanyrak_id: str, user_id: str) -> DeleteResult:
         return self.database["shanyraks"].delete_one(
             {"_id": ObjectId(shanyrak_id), "user_id": ObjectId(user_id)}
         )
     
-    def update_pic(self, shanyrak_id: str, user_id: str, data: str) -> UpdateResult:
-        filter={"_id":ObjectId(shanyrak_id), "user_id":ObjectId(user_id)}
-        return self.database["shanyraks"].update_one(filter, update={"$push":{"pic":data}})
+
+class PostRepository:
+    def __init__(self, database: Database):
+        self.database = database
+
+    def create_post(self, input: dict):
+        payload = {
+            "city": input["city"],
+            "message": input["message"],
+            "user_id": ObjectId(input["user_id"])
+        }
+
+        self.database["posts"].insert_one(payload)
