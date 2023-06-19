@@ -38,6 +38,38 @@ class ShanyrakRepository:
         )
     
 
+    def pagination_shanyraks(self, limit, offset, rooms_count, price_from, price_until, latitude=None, longitude=None, radius=None):
+        sort_filter = {}
+
+        if rooms_count is not None:
+            sort_filter["rooms_count"] = {"$gt": rooms_count}
+        
+        if price_until is not None and price_from is not None:    
+            sort_filter["price"] = {"$gt": price_from, "$lt": price_until}
+        
+        elif price_from is None and price_until is not None:
+            sort_filter["price"] = {"$lt": price_until}
+        
+        elif price_until is None and price_from is not None:
+            sort_filter["price"] = {"$gt": price_from}
+        
+        if latitude is not None and longitude is not None and radius is not None:
+            sort_filter["location"] = {
+                "$geoWithin": {
+                    "$centerSphere": [[longitude, latitude], radius / 6371]
+                }
+            }
+
+        cursor = self.database["shanyraks"].find(sort_filter).limit(limit).skip(offset).sort("created_at")
+        shanyraks = []
+        for obj in cursor:
+            obj["_id"] = str(obj["_id"])  
+            obj["user_id"] = str(obj["user_id"])
+            shanyraks.append(obj)
+
+        return shanyraks
+    
+
 class PostRepository:
     def __init__(self, database: Database):
         self.database = database

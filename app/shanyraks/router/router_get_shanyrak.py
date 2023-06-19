@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 from fastapi import Depends, Response
 from pydantic import Field
@@ -24,6 +24,11 @@ class GetShanyrakResponse(AppModel):
     media: List[str] = []
 
 
+# class GetShanyraksResponse (AppModel):
+#     total: int
+#     objects: List[GetShanyrakResponse]
+
+
 @router.get("/all", response_model=List[GetShanyrakResponse])
 def get_all_shanyraks(
         jwt_data: JWTData = Depends(parse_jwt_user_data),
@@ -44,3 +49,19 @@ def get_shanyrak(
     if not shanyrak:
         return Response(status_code=404)
     return GetShanyrakResponse(**shanyrak)
+
+
+@router.get("/")
+def get_shanyraks(
+    limit: int,
+    offset: int,
+    rooms_count: Optional[int] = None,
+    price_from: Optional[int] = None,
+    price_until: Optional[int] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    radius: Optional[float] = None,
+    svc: Service = Depends(get_service),
+):
+    paginated = svc.repository.pagination_shanyraks(limit, offset, rooms_count, price_from, price_until, latitude, longitude, radius)
+    return {"total": len(paginated), "objects": paginated}
